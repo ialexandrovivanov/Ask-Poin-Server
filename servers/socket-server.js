@@ -19,6 +19,10 @@ class SocketConnection {
         if (tokens.includes(data.token)) { this.io.to(data.room).emit('message', data); }
         else { socket.disconnect(true); }
       });
+      socket.on('event', (data) => { 
+        if (tokens.includes(data.token)) { this.io.emit('event', data); }
+        else { socket.disconnect(true); }
+      });
       socket.on('delete', (data) => { 
         if (tokens.includes(data.token)) { this.io.to(data.room).emit('delete', data);  }
         else { socket.disconnect(true); }
