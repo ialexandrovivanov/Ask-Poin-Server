@@ -92,7 +92,7 @@ router.delete('/messages/:_id', async function (req, res) {
       await dbService.deleteMessage(req, res);
       res.sendStatus(200).end();
    }
-   catch (err) { console.error(); }
+   catch (err) { console.log(err); }
 });
 
 // delete all from deleted DELETE

@@ -34,8 +34,10 @@ exports.saveNewEvent = async function(req, res) {
     const cursor = await dbService.getDbCursor('AskPoint', 'events');
     const response = await cursor.insertOne(event);
     if(response.insertedCount === 1) { 
+        const token = tokenService();
         event.password = null;
-        event.token = tokenService();
+        event.token = token;
+        state.eventTokens[token] = Date.now();
         return JSON.stringify(event); 
     }
     else { res.sendStatus(500); throw Error('Unable to save new event') }
