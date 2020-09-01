@@ -1,7 +1,8 @@
 const fs = require("fs");
+const atob = require('atob');
+const bcrypt = require('bcrypt');
 const keys = JSON.parse(fs.readFileSync('keys.json'));
 const fetch = require('node-fetch');
-const bcrypt = require('bcrypt');
 const state = require('../services/state');
 const mongoDbConnection = { instance: null };
 const MongoClient = require('mongodb').MongoClient;
@@ -51,7 +52,7 @@ exports.checkEventCredentials = async function(req, res) {
        state.eventTokens[event.token] = Date.now();  
        return event;
     }
-    else { res.sendStatus(500); throw Error('Wrong event credentials') }
+    else { res.sendStatus(401); throw Error('Wrong event credentials') }
 }
 exports.getDeletedMessages = async function(req, res) {
     const cursor = await dbService.getDbCursor('AskPoint', 'deleted');
@@ -168,21 +169,23 @@ exports.getUser = async function(req, res) {
     else { res.sendStatus(500); throw Error('Cannot get user from db'); }
 }
 exports.updateUserAvatar = async function(req, res) {
-    console.log(req.file.filename, keys.imgur);
     // req.file is the image file, req.body will hold the text methadata fields if there are any.
-    const responseImgur = await fetch('https://api.imgur.com/3/image', {
-       method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Client-ID ${keys.imgur}` },
-       body: fs.createReadStream(__dirname + `/uploads/${req.file.filename}`) 
-    });
-    console.log(responseImgur);
+    const key = atob(keys.imgur);
+    const options = {
+        method: 'POST', 
+        headers: { 'Authorization': `Client-ID ${key}` },
+        body: fs.readFileSync('D:\\Express Projects\\ask-point-server\\servers\\uploads\\' + req.file.filename) 
+     }
+    const responseImgur = await fetch('https://api.imgur.com/3/image', options);
 
     if(responseImgur.ok) {
-        fs.unlinkSync(__dirname + `/uploads/${req.file.filename}`); // delete uploaded file but can be kept
+        // delete uploaded file but it can be kept for logic with local image storage
+        fs.unlinkSync('D:\\Express Projects\\ask-point-server\\servers\\uploads\\' + req.file.filename); 
+
         const body = await responseImgur.json();
-        console.log(body.data.link+'<-imgur link');
         const cursorUsers = await dbService.getDbCursor('AskPoint', 'users');
         const cursorMessages = await dbService.getDbCursor('AskPoint', 'messages');
-        const responseDb = await cursorUsers.updateOne({ _id: new ObjectID(req.params._id) }, { $set: { image: body.data.link }}); 
+        const responseDb = await cursorUsers.updateOne({ _id: req.params._id }, { $set: { image: body.data.link }}); 
         await cursorMessages.updateMany({ user_id: req.params._id }, { $set: { image: body.data.link }}); 
         if(responseDb.modifiedCount === 1) { return JSON.stringify({ link: body.data.link }); }
         else { res.sendStatus(500); throw Error('Avatar link is not updated in database') }

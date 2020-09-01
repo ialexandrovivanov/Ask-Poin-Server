@@ -39,6 +39,10 @@ class SocketConnection {
         if (tokens.includes(data.token)) { this.io.to(data.room).emit('likes', data); }
         else { socket.disconnect(true); }
       });
+      socket.on('avatar', (data) => { 
+        if (tokens.includes(data.token)) { this.io.emit('avatar', data); }
+        else { socket.disconnect(true); }
+      });
     });
   }
 }
