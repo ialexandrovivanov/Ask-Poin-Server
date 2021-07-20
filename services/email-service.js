@@ -20,7 +20,7 @@ exports.sendMail = async function (email, username, subject, content) {
         from: 'askpoint@vue.org',
         subject: subject,
         text: '...',
-        html: `<p><b>Hello ${username}!</b></p><br><p>${content}`,
+        html: `<p><b>Hello ${username}!</b></p><br><p>${content}</p>`,
     };
     try { await sendGrid.send(fullEmail); return true; } 
     catch (err) { console.log(err); return false; }
