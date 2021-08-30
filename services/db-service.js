@@ -139,7 +139,7 @@ exports.registerUser = async function(req, res) {
             const hashedPassword = await bcrypt.hash(password, 10);
             const _id = authService.generateUuid();
             const resultDb = await cursor.insertOne({ _id: _id, email: body.email, username: body.username, password: hashedPassword, image: "" });
-            const resultEmail = await emailService.sendMail(body.email, body.username, "Successfull registration to AskPoint!", `<p>You have been registered to <a href="http://localhost:8080/"><b>--- AskPoint ---</b></a> with temporary password: ${password}</p><p>In profile section you can change your password right after first login</p><p>Your login credentials: { email: ${body.email}, password: ${password} }</p><p><a href="http://localhost:8080/login"><b>--- Login page ---</b></a></p>`)
+            const resultEmail = await emailService.sendMail(body.email, body.username, "Successfull registration to AskPoint!", `<p>You have been registered to <a href="http://localhost:80/"><b>--- AskPoint ---</b></a> with temporary password: ${password}</p><p>In profile section you can change your password right after first login</p><p>Your login credentials: { email: ${body.email}, password: ${password} }</p><p><a href="http://localhost:80/login"><b>--- Login page ---</b></a></p>`)
             if(resultDb.insertedCount === 1 && resultEmail) { 
                state.userTokens[token] = Date.now(); 
                const data = await authService.encryptBody(token);
@@ -174,13 +174,13 @@ exports.updateUserAvatar = async function(req, res) {
     const options = {
         method: 'POST', 
         headers: { 'Authorization': `Client-ID ${key}` },
-        body: fs.readFileSync('D:\\Express Projects\\ask-point-server\\servers\\uploads\\' + req.file.filename) 
+        body: fs.readFileSync(req.file.path) 
      }
     const responseImgur = await fetch('https://api.imgur.com/3/image', options);
 
     if(responseImgur.ok) {
-        // delete uploaded file but it can be kept for logic with local image storage
-        fs.unlinkSync('D:\\Express Projects\\ask-point-server\\servers\\uploads\\' + req.file.filename); 
+        // delete uploaded file but it can be kept for local image storage
+        fs.unlinkSync(req.file.path); 
 
         const body = await responseImgur.json();
         const cursorUsers = await dbService.getDbCursor('AskPoint', 'users');

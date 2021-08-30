@@ -24,8 +24,9 @@ class AskPointServer {
   }
 
   startMessage() { 
+    
     console.clear();
-    console.log(`...AskPoint server is listening`); 
+    console.log(`...AskPoint API server is listening`); 
   }
 }
 

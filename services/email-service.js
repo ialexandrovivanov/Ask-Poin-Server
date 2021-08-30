@@ -6,10 +6,9 @@ const keys = JSON.parse(fs.readFileSync('keys.json'));
 exports.checkEmail =  async function (email) {
     const url = `https://apilayer.net/api/check?access_key=${keys.apilayer}&email=${email}`;
     const response = await fetch(url, { method: 'GET', mode:'cors', headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }});
-    if (response.ok) { 
-        const body = await response.json(); 
-        return body.smtp_check; 
-    }
+    if (response.ok) 
+       return response.ok;
+    
     throw Error(JSON.stringify(response));
 }
 
@@ -17,7 +16,7 @@ exports.sendMail = async function (email, username, subject, content) {
     sendGrid.setApiKey(keys.sendgrid);
     const fullEmail = {
         to: email,
-        from: 'askpoint@vue.org',
+        from: 'ialexandrovivanov@gmail.com',
         subject: subject,
         text: '...',
         html: `<p><b>Hello ${username}!</b></p><br><p>${content}</p>`,
