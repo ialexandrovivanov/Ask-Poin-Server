@@ -10,9 +10,9 @@ exports.authUser = async function (req, res) {
     if(state.userTokens[req.headers.user]) { return; }
     else { res.sendStatus(401); throw Error('Missing or invalid user token'); } // user unauthorized
 }
-exports.authApp = async function (req, res) {
+exports.authApp = async function (req, res) {                                   // client unauthorized
     const key =  await state.appsecret();
-    const text = (CryptoJs.AES.decrypt(req.headers.app, key)).toString(CryptoJs.enc.Utf8);
+    const text = await decrypt(req.headers.app, key);
     if(text === await state.appkey()) { return; }
     else { res.sendStatus(401); throw Error('Missing or invalid app token'); }  
 }
@@ -29,3 +29,7 @@ exports.encryptBody = async function (data) {
     return body;
 }
 exports.generateUuid = function() { return uuidv4(); }
+
+async function decrypt(data, key) {
+    return (CryptoJs.AES.decrypt(data, key)).toString(CryptoJs.enc.Utf8)
+}
