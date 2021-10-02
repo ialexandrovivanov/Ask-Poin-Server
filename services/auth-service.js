@@ -25,7 +25,6 @@ exports.decryptBody = async function (req) {
 exports.encryptBody = async function (data) {
     const key =  await state.appsecret();
     const body = (CryptoJs.AES.encrypt(data, key)).toString();
-    console.log(key, body);
     return body;
 }
 exports.generateUuid = function() { return uuidv4(); }

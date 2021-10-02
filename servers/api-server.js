@@ -6,7 +6,6 @@ const authService = require('../services/auth-service');
 const multer  = require('multer');
 const upload = multer({ dest: __dirname + '/uploads/' });
 
-
 // get all event names GET
 router.get('/events', async function (req, res) { 
   try {
@@ -177,7 +176,7 @@ router.post('/register', async function (req, res) {
    try {
       await authService.authApp(req, res);
       const body = await dbService.registerUser(req, res);
-      res.send(body).end();
+      res.send(body);
    } 
    catch (err) { console.log(err); }
 });

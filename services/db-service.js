@@ -1,5 +1,4 @@
 const fs = require("fs");
-const atob = require('atob');
 const bcrypt = require('bcrypt');
 const keys = JSON.parse(fs.readFileSync('keys.json'));
 const fetch = require('node-fetch');
@@ -138,14 +137,17 @@ exports.registerUser = async function(req, res) {
             const password = tempPassword();
             const hashedPassword = await bcrypt.hash(password, 10);
             const _id = authService.generateUuid();
-            const resultDb = await cursor.insertOne({ _id: _id, email: body.email, username: body.username, password: hashedPassword, image: "" });
             const resultEmail = await emailService.sendMail(body.email, body.username, "Successfull registration to AskPoint!", `<p>You have been registered to <a href="http://localhost:80/"><b>--- AskPoint ---</b></a> with temporary password: ${password}</p><p>In profile section you can change your password right after first login</p><p>Your login credentials: { email: ${body.email}, password: ${password} }</p><p><a href="http://localhost:80/login"><b>--- Login page ---</b></a></p>`)
-            if(resultDb.insertedCount === 1 && resultEmail) { 
-               state.userTokens[token] = Date.now(); 
-               const data = await authService.encryptBody(token);
-               const body = JSON.stringify({ data: data })
-               return JSON.stringify(body); 
-            }
+            if (resultEmail) {
+                const resultDb = await cursor.insertOne({ _id: _id, email: body.email, username: body.username, password: hashedPassword, image: "" });
+                if(resultDb.insertedCount === 1) { 
+                   state.userTokens[token] = Date.now(); 
+                   const data = await authService.encryptBody(token);
+                   const body = JSON.stringify({ data: data })
+                   return JSON.stringify(body); 
+                }
+                else { res.sendStatus(500); throw Error('Not registered successfully'); } 
+            } 
             else { res.sendStatus(500); throw Error('Not registered successfully'); } 
         }
     }
@@ -170,7 +172,7 @@ exports.getUser = async function(req, res) {
 }
 exports.updateUserAvatar = async function(req, res) {
     // req.file is the image file, req.body will hold the text methadata fields if there are any.
-    const key = atob(keys.imgur);
+    const key = keys.imgur;
     const options = {
         method: 'POST', 
         headers: { 'Authorization': `Client-ID ${key}` },
